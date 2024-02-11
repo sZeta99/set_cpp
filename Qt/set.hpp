@@ -102,12 +102,27 @@ public:
         {
             return false;
         }
-
+        if (_size + 1 == 0)
+        {
+            throw std::bad_alloc();
+        }
         value_type *tmp = _allocator.allocate(_size + 1);
 
         for (size_type i = 0; i < _size; i++)
         {
-            _allocator.construct(tmp + i, _elements[i]);
+            try
+            {
+                _allocator.construct(tmp + i, _elements[i]);
+            }
+            catch (...)
+            {
+                for (size_type j = 0; j < i; j++)
+                {
+                    _allocator.destroy(tmp + j);
+                }
+                _allocator.deallocate(tmp, _size);
+                throw;
+            }
         }
 
         _allocator.construct(tmp + _size, value);
@@ -144,6 +159,7 @@ public:
             clear();
             return true;
         }
+
         value_type *tmp = _allocator.allocate(_size - 1);
 
         size_type j = 0;
@@ -151,7 +167,19 @@ public:
         {
             if (!_eq(_elements[i], value))
             {
-                _allocator.construct(tmp + j, _elements[i]);
+                try
+                {
+                    _allocator.construct(tmp + j, _elements[i]);
+                }
+                catch (...)
+                {
+                    for (size_type k = 0; k < j; k++)
+                    {
+                        _allocator.destroy(tmp + k);
+                    }
+                    _allocator.deallocate(tmp, _size - 1);
+                    throw;
+                }
                 j++;
             }
         }
