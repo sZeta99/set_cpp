@@ -7,6 +7,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <array>
 #include "set.hpp"
 /**
  * @brief Definizione di un funtore per il confronto di interi
@@ -47,16 +48,6 @@ typedef Set<dipinto, std::equal_to<dipinto>, std::allocator<dipinto>> DipintoSet
 /**
  * @brief Definizione di un predicato pre il confronto tra dipinti
  */
-struct SogTit
-{
-public:
-    explicit SogTit(std::string soggetto_o_titolo) : soggetto_o_titolo(soggetto_o_titolo) {}
-
-    inline bool operator()(const dipinto &e) const { return e.scuola.find(soggetto_o_titolo) != std::string::npos; }
-
-private:
-    std::string soggetto_o_titolo;
-};
 
 /**
  * @brief Definizione di un predicato per il filtraggio di un set di interi
@@ -376,9 +367,14 @@ void test_lista_di_stringhe(void)
 void test_iter()
 {
     std::cout << "******** Test costruttore da iteratore ********" << std::endl;
-
-    int a[] = {1, 2, 3, 4, 5};
-    Set<int, equal_int, std::allocator<int>> s(a, a + 5);
+    // Found C-style array declaration in place of std::array or std::vector
+    std::vector<int> a = std::vector<int>(5);
+    a[0] = 1;
+    a[1] = 2;
+    a[2] = 3;
+    a[3] = 4;
+    a[4] = 5;
+    Set<int, equal_int, std::allocator<int>> s(a.begin(), a.end());
 
     std::cout << "Stampa con operator<<" << std::endl;
     std::cout << s << std::endl;
@@ -566,6 +562,16 @@ void test_global_method(void)
  */
 void test_con_new()
 {
+    struct SogTit
+    {
+    public:
+        explicit SogTit(std::string soggetto_o_titolo) : soggetto_o_titolo(soggetto_o_titolo) {}
+
+        inline bool operator()(const dipinto &e) const { return e.scuola.find(soggetto_o_titolo) != std::string::npos; }
+
+    private:
+        std::string soggetto_o_titolo;
+    };
     DipintoSet *prova = new DipintoSet();
 
     prova->add(dipinto("C"));
